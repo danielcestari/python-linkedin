@@ -239,7 +239,7 @@ class LinkedIn(object):
                 
         return self.get_profile_raw(raw_url)
     
-    def get_profile_raw(self, raw_url, params=None):
+    def get_profile_raw(self, raw_url, params=None, fields=(), raw=False):
         """
         Use the profile API of linked in. Just append the raw_url string to the v1/people/ url
         and the dictionary params as parameters for the GET request
@@ -247,7 +247,13 @@ class LinkedIn(object):
         
         self._check_tokens()
         
+        if fields:
+            fields = ":(%s)" % ",".join(fields) if len(fields) > 0 else None
+            if fields:
+                raw_url = raw_url + fields
         response = self._do_normal_query("/v1/people/" + raw_url, params=params)
+        if raw:
+            return response
         return Profile.create(minidom.parseString(response), self._debug)
 
     def get_connections(self, member_id = None, public_url = None, fields=()):
