@@ -759,6 +759,15 @@ class LinkedIn(object):
         
         response = self._https_connection(method, relative_url, query_dict, body)
         
+        print 'response => '+ response
+        
+        print 'relative_url => '+ relative_url
+        
+        print 'query_dict => '+ query_dict
+        
+        
+        
+        
         if response:
             error = self._parse_error(response)
             if error:
