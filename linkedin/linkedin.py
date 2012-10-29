@@ -253,7 +253,8 @@ class LinkedIn(object):
                 raw_url = raw_url + fields
         response = self._do_normal_query("/v1/people/" + raw_url, params=params, json=json)
         if json:
-            return response
+            import json
+            return json.loads(response)
         return Profile.create(minidom.parseString(response), self._debug)
 
     def get_connections(self, member_id = None, public_url = None, fields=()):
