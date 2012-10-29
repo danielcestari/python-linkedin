@@ -207,7 +207,7 @@ class LinkedIn(object):
         self._access_token = self._get_value_from_raw_qs("oauth_token", response)
         self._access_token_secret = self._get_value_from_raw_qs("oauth_token_secret", response)
 
-    def get_profile(self, member_id = None, url = None, fields=()):
+    def get_profile(self, member_id = None, url = None, fields=(), json=False):
         """
         Gets the public profile for a specific user. It is determined by his/her member id or public url.
         If none of them is given, the information og the application's owner are returned.
@@ -237,9 +237,9 @@ class LinkedIn(object):
             if fields:
                 raw_url = raw_url + fields
                 
-        return self.get_profile_raw(raw_url)
+        return self.get_profile_raw(raw_url, json)
     
-    def get_profile_raw(self, raw_url, params=None, fields=(), raw=False):
+    def get_profile_raw(self, raw_url, params=None, fields=(), json=False):
         """
         Use the profile API of linked in. Just append the raw_url string to the v1/people/ url
         and the dictionary params as parameters for the GET request
@@ -251,7 +251,7 @@ class LinkedIn(object):
             fields = ":(%s)" % ",".join(fields) if len(fields) > 0 else None
             if fields:
                 raw_url = raw_url + fields
-        response = self._do_normal_query("/v1/people/" + raw_url, params=params)
+        response = self._do_normal_query("/v1/people/" + raw_url, params=params, json=json)
         if raw:
             return response
         return Profile.create(minidom.parseString(response), self._debug)
@@ -701,7 +701,7 @@ class LinkedIn(object):
     def _signature_base_string(self, method, uri, query_dict):
         return "&".join([self._quote(method), self._quote(uri), self._quote(self._urlencode(query_dict))])
         
-    def _parse_error(self, str_as_xml):
+    def _parse_error(self, str_as_xml, json=False):
         """
         Helper function in order to get error message from an xml string.
         In coming xml can be like this:
@@ -713,6 +713,11 @@ class LinkedIn(object):
          <message>[invalid.property.name]. Couldn't find property with name: first_name</message>
         </error>
         """
+        
+        # TODO parse json errors
+        if json:
+            return False
+        
         try:
             xmlDocument = minidom.parseString(str_as_xml)
             if len(xmlDocument.getElementsByTagName("error")) > 0: 
@@ -743,7 +748,7 @@ class LinkedIn(object):
         query_dict.update(additional)
         return query_dict
     
-    def _do_normal_query(self, relative_url, body=None, method="GET", params=None):
+    def _do_normal_query(self, relative_url, body=None, method="GET", params=None, json=False):
         method = method
         query_dict = self._query_dict({"oauth_token" : self._access_token})
         signature_dict = dict(query_dict)
@@ -769,7 +774,7 @@ class LinkedIn(object):
         
         
         if response:
-            error = self._parse_error(response)
+            error = self._parse_error(response, json=json)
             if error:
                 raise LinkedinError(error)
         
