@@ -252,7 +252,7 @@ class LinkedIn(object):
             if fields:
                 raw_url = raw_url + fields
         response = self._do_normal_query("/v1/people/" + raw_url, params=params, json=json)
-        if raw:
+        if json:
             return response
         return Profile.create(minidom.parseString(response), self._debug)
 
